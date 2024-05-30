@@ -21,10 +21,13 @@
 */
 #ifndef INCLUDE_MPL3115A2S_DRIVER_H_
 #define INCLUDE_MPL3115A2S_DRIVER_H_
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* Includes ------------------------------------------------------------------*/
 #include <stdint.h>
-#include "I2CPeripheral_Interface.h" 
+#include "../I2CPeripheral_Interface.h"
 
 /* Macros and Constants ------------------------------------------------------*/
 // Multiplier for fixed point values, e.g. For 101325.5 Pa of pressure
@@ -190,5 +193,7 @@ MPL_OP_STATUS MPL3115A2S_Reset();
  */
 MPL_OP_STATUS MPL3115A2S_CheckDeviceID();
 
-
+#ifdef __cplusplus
+}
+#endif
 #endif /* INCLUDE_MPL3115A2S_DRIVER_H_ */

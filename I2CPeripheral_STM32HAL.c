@@ -11,7 +11,7 @@
 #include "stm32l1xx_hal.h" // Change this to the target processor family
 
 /* I2C Line ------------------------------------------------------- */
-#define I2C_LINE (hi2c1) // Change this to the target I2C Handle
+#define I2C_LINE hi2c1 // Change this to the target I2C Handle
 extern I2C_HandleTypeDef I2C_LINE; 
 
 /* Functions ------------------------------------------------------ */
