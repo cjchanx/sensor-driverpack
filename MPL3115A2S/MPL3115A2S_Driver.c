@@ -170,6 +170,44 @@ MPL_OP_STATUS MPL3115A2S_Init(MPL3115A2S_Config* const cfg, MPL3115A2S_Data_Conf
     return MPL_OK;
 }
 
+/* Read Data Functions (combination, float) -----------------------------------------*/
+
+MPL_OP_STATUS MPL3115A2S_ReadDataPolling(float* pres_alt, float* temp) {
+    if(state == MPL_STATE_NOT_INIT) return MPL_NOT_INIT;
+
+    // Check if data is ready
+    if (MPL3115A2S_DataReady() != MPL_OK) return MPL_DATA_NOT_READY;
+
+    uint8_t buf[5];
+    if (I2C_ReadRegisters(MPL3115A2S_ADDR, MPL3115A2S_OUT_P_MSB, buf, 5)) return MPL_ERR;
+
+    if(state == MPL_STATE_READY_PRES)
+        *pres_alt = DecodePressureAsFloat(buf);
+    else
+        *pres_alt = DecodeAltitudeAsFloat(buf);
+
+    *temp = DecodeTemperatureAsFloat(buf + 3);
+    return MPL_OK;
+}
+
+MPL_OP_STATUS MPL3115A2S_ReadDataExtInterrupt(float* pres_alt, float* temp)  {
+    if(state == MPL_STATE_NOT_INIT) return MPL_NOT_INIT;
+
+    // Check INT_SOURCE register for data ready
+    if(MPL3115A2S_DataReadyIT() != MPL_OK) return MPL_DATA_NOT_READY;
+
+    uint8_t buf[5];
+    if (I2C_ReadRegisters(MPL3115A2S_ADDR, MPL3115A2S_OUT_P_MSB, buf, 5)) return MPL_ERR;
+
+    if(state == MPL_STATE_READY_PRES)
+        *pres_alt = DecodePressureAsFloat(buf);
+    else
+        *pres_alt = DecodeAltitudeAsFloat(buf);
+    
+    *temp = DecodeTemperatureAsFloat(buf + 3);
+    return MPL_OK;
+}
+
 /* Read Data Functions (float) ---------------------------------------------------------------*/
 
 MPL_OP_STATUS MPL3115A2S_ReadPressure(float* pressure) {
@@ -244,4 +282,40 @@ MPL_OP_STATUS MPL3115A2S_CheckDeviceID() {
     if (I2C_ReadRegisters(MPL3115A2S_ADDR, MPL3115A2S_WHO_AM_I, &id, 1)) return MPL_ERR;
     if (id == MPL3115A2S_WHO_AM_I_ID) return MPL_OK;
     return MPL_INVALID_ID;
+}
+
+MPL_OP_STATUS MPL3115A2S_DataReady() {
+    uint8_t status = 0;
+    if (I2C_ReadRegisters(MPL3115A2S_ADDR, MPL3115A2S_STATUS, &status, 1)) return MPL_ERR;
+    if (status & 0x08) return MPL_OK;
+    return MPL_DATA_NOT_READY;
+}
+
+MPL_OP_STATUS MPL3115A2S_ReadIntSource(uint8_t* int_source) {
+    if (I2C_ReadRegisters(MPL3115A2S_ADDR, MPL3115A2S_STATUS, int_source, 1)) return MPL_ERR;
+    return MPL_OK;
+}
+
+MPL_OP_STATUS MPL3115A2S_DataReadyIT() {
+    uint8_t int_source = 0;
+    if (MPL3115A2S_ReadIntSource(&int_source) != MPL_OK) return MPL_ERR;
+    if (int_source & 0x80) return MPL_OK;
+    return MPL_DATA_NOT_READY;
+}
+
+MPL_OP_STATUS MPL3115A2S_IsAltimeterMode() {
+    uint8_t ctrl_reg1 = 0;
+    if (I2C_ReadRegisters(MPL3115A2S_ADDR, MPL3115A2S_CTRL_REG1, &ctrl_reg1, 1)) return MPL_ERR;
+
+    // Make sure this matches the current state
+    if((ctrl_reg1 >> MPL3115A2S_CTRL_ALT_SHIFT) & 0x01) {
+        if(state == MPL_STATE_READY_ALT) return MPL_OK;
+    } else {
+        if(state == MPL_STATE_READY_PRES) {
+            state = MPL_STATE_READY_ALT;
+            return MPL_ERR;
+        }
+    }
+
+    return MPL_INVALID_SETTING;
 }

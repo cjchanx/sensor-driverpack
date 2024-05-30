@@ -15,6 +15,7 @@
  * Potential Improvements :
  * - Add offset setting support (OFF_P, OFF_T, OFF_H registers)
  * - Add FIFO Configuration Support
+ * - Add additional interrupt decoding support (SRC_PW, TW, PTH, TTH, PCH, TCH)
  * 
  * Authors            : Chris (cjchanx)
  ******************************************************************************
@@ -51,6 +52,8 @@ typedef enum {
 
     MPL3115A2S_INVALID_ID = 3,
     MPL_INVALID_ID = MPL3115A2S_INVALID_ID,
+
+    MPL_DATA_NOT_READY = 4,
 } MPL_OP_STATUS;
 
 // Control Register 1 Options (CTRL_REG1 = 0x26)
@@ -112,6 +115,32 @@ typedef struct {
  * @return MPL_OP_STATUS 
  */
 MPL_OP_STATUS MPL3115A2S_Init(MPL3115A2S_Config* const cfg, MPL3115A2S_Data_Config* const data_cfg, MPL3115A2S_Int_Config* const int_cfg);
+
+/* Read Data Functions (combination, float) -----------------------------------------*/
+/**
+ * @brief Reads pressure or altitude, and temperature data as floats
+ * Note: The sensor will return the data based on the mode it is in (e.g. Pressure Mode or Altitude Mode)
+ *  - This function performs a STATUS register check to determine if data is ready
+ *  - This function drives the process described in page 13 of the data sheet
+ * 
+ * @param pres_alt Pointer to value to store pressure or altitude data
+ * @param temp Pointer to value to store temperature data
+ * @return MPL_OP_STATUS 
+ */
+MPL_OP_STATUS MPL3115A2S_ReadDataPolling(float* pres_alt, float* temp);
+
+/**
+ * @brief Reads pressure or altitude, and temperature data as floats using the MPL interrupt pins
+ *        and should be called after the interrupt is triggered
+ * Note: The sensor will return the data based on the mode it is in (e.g. Pressure Mode or Altitude Mode)
+ * - This function performs a INT_SOURCE register check to determine if data is ready
+ * - This function drives the process described in page 14 of the data sheet
+ * 
+ * @param pres_alt Pointer to value to store pressure or altitude data
+ * @param temp Pointer to value to store temperature data
+ * @return MPL_OP_STATUS
+ */
+MPL_OP_STATUS MPL3115A2S_ReadDataExtInterrupt(float* pres_alt, float* temp);
 
 /* Read Data Functions (float) ---------------------------------------------------------------*/
 /**
@@ -192,6 +221,42 @@ MPL_OP_STATUS MPL3115A2S_Reset();
  * @return MPL_OP_STATUS 
  */
 MPL_OP_STATUS MPL3115A2S_CheckDeviceID();
+
+/**
+ * @brief Check if the MPL3115A2S has data ready through the STATUS register
+ * 
+ * @return MPL_OP_STATUS 
+ *  MPL_DATA_NOT_READY if data is not ready
+ *  MPL_OK if data is ready
+ */
+MPL_OP_STATUS MPL3115A2S_DataReady();
+
+/**
+ * @brief Read interrupt source register 
+ * 
+ * @param int_source Pointer to store the interrupt source
+ * @return MPL_OP_STATUS
+ */
+MPL_OP_STATUS MPL3115A2S_ReadIntSource(uint8_t* int_source);
+
+/**
+ * @brief Check if the MPL3115A2S has data ready through the interrupt source register
+ * 
+ * @return MPL_OP_STATUS 
+ *  MPL_DATA_NOT_READY if data is not ready
+ *  MPL_OK if data is ready
+ */
+MPL_OP_STATUS MPL3115A2S_DataReadyIT();
+
+/**
+ * @brief Check if the MPL3115A2S is in Altimeter Mode
+ * 
+ * @return MPL_OP_STATUS
+ * MPL3115A2S_OK if sensor is in Altimeter Mode
+ * MPL3115A2S_INVALID_SETTING if sensor is in Barometer Mode
+ * MPL_ERR if value was read, but state mismatched with stored value
+ */
+MPL_OP_STATUS MPL3115A2S_IsAltimeterMode();
 
 #ifdef __cplusplus
 }
