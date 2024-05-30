@@ -30,13 +30,7 @@ extern "C" {
 #include <stdint.h>
 #include "../I2CPeripheral_Interface.h"
 
-/* Macros and Constants ------------------------------------------------------*/
-// Multiplier for fixed point values, e.g. For 101325.5 Pa of pressure
-// the value read would be 101325500. Divide by this value to get the actual value
-#define MPL3115A2S_INT_OUTPUT_MULTIPLIER (1000)
-
 /* Enums and Structs ---------------------------------------------------------*/
-
 // Driver Operation Status, Used as Function Return Values
 typedef enum {
     MPL3115A2S_OK = 0,
