@@ -74,7 +74,7 @@ typedef struct {
 typedef struct {
     uint8_t enable_all_flags : 1; // 1 = Enable All Flags (ignore options below)
 
-    uint8_t data_ready_event_mode : 1; // 1 = Data Ready Event Mode, 0 = Polling Mode
+    uint8_t data_ready_event_mode : 1; // 1 = Data Ready Event Mode, 0 = Event Detection Disabled
     uint8_t pressure_data_event_flag : 1; // 1 = Enable Pressure Data Event Flag
     uint8_t temperature_data_event_flag : 1; // 1 = Enable Temperature Data Event Flag
 } MPL3115A2S_Data_Config;
