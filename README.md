@@ -19,3 +19,7 @@ Navigate to the relevent sensor's folder and read the README. Each sensor will r
 ## Sensors
 ### [MPL3115A2S](MPL3115A2S) NXP Pressure Sensor with Altimetry Support [(Datasheet)](https://www.mouser.ca/datasheet/2/302/MPL3115A2S-3103208.pdf)
 - I2C interface, currently supports various configurations for polling and interrupt modes.
+
+## Documentation
+
+Each folder contains documentation for that device driver.
